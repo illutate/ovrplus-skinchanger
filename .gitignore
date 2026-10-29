@@ -1,0 +1,13 @@
+# Build artifacts
+/build/
+*.o
+*.obj
+*.a.tmp
+
+# Configuration and runtime dumps
+ovr_skins.cfg
+ovr_skins.log
+debug.log
+netdelta_dump.bin
+packet_dump.bin
+panorama_dump.txt
