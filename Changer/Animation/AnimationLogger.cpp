@@ -22,13 +22,13 @@
 namespace
 {
     constexpr std::uint32_t NetworkIndexMask = 0x3FFF;
-    constexpr int LogLimit = 3000;
+    constexpr int LogLimit = 0;
 
     std::atomic<int> Logs{0};
 
     bool Allow()
     {
-        return Logs.fetch_add(1) < LogLimit;
+        return false;
     }
 
     bool IsOwn(std::uint32_t Handle)

@@ -113,18 +113,26 @@ std::uint32_t ItemSockets::FirstEmptySocket(const CSOEconItem& Item)
 
 std::uint32_t ItemSockets::NextRequiredType(const CSOEconItem& Item)
 {
-    int Count = 0;
+    bool HasEthereal = false;
+    bool HasColor = false;
     for (std::uint32_t Def = FirstSocket; Def <= LastSocket; ++Def)
     {
         auto Value = Bytes(Item, Def);
         auto Socket = Value ? Read(*Value) : std::nullopt;
-        if (Socket && !IsEtherealGem(Socket->gem_def_index()))
-            ++Count;
+        if (Socket)
+        {
+            if (Socket->required_type() == RequiredTypeEffect || IsEtherealGem(Socket->gem_def_index()))
+                HasEthereal = true;
+            else if (Socket->required_type() == RequiredTypeColor || Socket->gem_def_index() == PrismaticGemDef)
+                HasColor = true;
+        }
     }
-    if (Count == 0)
-        return RequiredTypeColor;
-    if (Count == 1)
+    // Prioritize Ethereal (Effect gems like Frostbloom) FIRST
+    if (!HasEthereal)
         return RequiredTypeEffect;
+    // Prioritize Prismatic (Color gems) SECOND
+    if (!HasColor)
+        return RequiredTypeColor;
     return RequiredTypeAny;
 }
 

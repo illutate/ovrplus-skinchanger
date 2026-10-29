@@ -8,6 +8,39 @@ Panel::Panel(V8::Local Object)
         Global = V8::Globalize(Panorama::Isolate(), Object);
 }
 
+Panel::Panel(const Panel& Other)
+{
+    if (Other.Global && *Other.Global && Panorama::Isolate())
+        Global = V8::Globalize(Panorama::Isolate(), Other.Handle());
+}
+
+Panel& Panel::operator=(const Panel& Other)
+{
+    if (this != &Other)
+    {
+        Release();
+        if (Other.Global && *Other.Global && Panorama::Isolate())
+            Global = V8::Globalize(Panorama::Isolate(), Other.Handle());
+    }
+    return *this;
+}
+
+Panel::Panel(Panel&& Other) noexcept : Global(Other.Global)
+{
+    Other.Global = nullptr;
+}
+
+Panel& Panel::operator=(Panel&& Other) noexcept
+{
+    if (this != &Other)
+    {
+        Release();
+        Global = Other.Global;
+        Other.Global = nullptr;
+    }
+    return *this;
+}
+
 Panel Panel::Root()
 {
     return Panel(Panorama::Root());

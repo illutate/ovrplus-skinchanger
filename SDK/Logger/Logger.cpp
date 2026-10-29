@@ -83,27 +83,8 @@ namespace
 
 bool Logger::Init()
 {
-    // 1. Allocate and setup debug console
-    if (AllocConsole())
-    {
-        SetConsoleTitleA("OVR SkinChanger - Debug Console");
-        ConsoleOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (ConsoleOut != INVALID_HANDLE_VALUE)
-        {
-            DWORD mode = 0;
-            if (GetConsoleMode(ConsoleOut, &mode))
-                SetConsoleMode(ConsoleOut, mode | ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-        }
-
-        std::FILE* fp = nullptr;
-        freopen_s(&fp, "CONOUT$", "w", stdout);
-        freopen_s(&fp, "CONOUT$", "w", stderr);
-        freopen_s(&fp, "CONIN$", "r", stdin);
-    }
-    else
-    {
-        ConsoleOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    }
+    // Debug console allocation removed per user request (logs routed to debug.log)
+    ConsoleOut = INVALID_HANDLE_VALUE;
 
     // 2. Open debug.log in the same directory as the DLL
     std::string LogFilePath = Paths::Resolve(LogFileName);
@@ -121,18 +102,6 @@ bool Logger::Init()
     // Vectored exception handler for crash capture
     AddVectoredExceptionHandler(1, ExceptionHandler);
 
-    // Initial banner
-    if (ConsoleOut != INVALID_HANDLE_VALUE)
-    {
-        SetConsoleTextAttribute(ConsoleOut, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-        std::printf("===============================================================\n");
-        std::printf("              OVR SKINCHANGER - DEBUG CONSOLE                  \n");
-        std::printf("===============================================================\n");
-        SetConsoleTextAttribute(ConsoleOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        std::printf("[+] Attached to process (PID: %lu)\n", GetCurrentProcessId());
-        std::printf("[+] Log file: %s\n\n", LogFilePath.c_str());
-    }
-
     return true;
 }
 
@@ -147,23 +116,6 @@ void Logger::Write(const char* Prefix, const char* Format, ...)
     if (Written < 0)
         return;
 
-    // Console output with colors
-    if (ConsoleOut != INVALID_HANDLE_VALUE)
-    {
-        WORD color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-        if (std::strcmp(Prefix, "[+]") == 0)
-            color = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-        else if (std::strcmp(Prefix, "[!]") == 0)
-            color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-        else if (std::strcmp(Prefix, "[-]") == 0)
-            color = FOREGROUND_RED | FOREGROUND_INTENSITY;
-
-        SetConsoleTextAttribute(ConsoleOut, color);
-        std::printf("%s ", Prefix);
-        SetConsoleTextAttribute(ConsoleOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        std::printf("%s\n", Message);
-    }
-
     // File output to debug.log
     if (LogFile != INVALID_HANDLE_VALUE)
     {
@@ -173,8 +125,8 @@ void Logger::Write(const char* Prefix, const char* Format, ...)
         {
             DWORD BytesWritten = 0;
             WriteFile(LogFile, FileBuffer, static_cast<DWORD>(Total), &BytesWritten, nullptr);
-            // Flush periodically or on warnings/errors
-            if (Prefix[1] == '!' || Prefix[1] == '-')
+            // Flush only on fatal errors
+            if (Prefix[1] == '!')
                 FlushFileBuffers(LogFile);
         }
     }

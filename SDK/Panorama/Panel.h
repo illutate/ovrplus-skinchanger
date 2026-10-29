@@ -16,6 +16,11 @@ public:
     using Style = std::initializer_list<std::pair<const char*, const char*>>;
 
     Panel() = default;
+    Panel(const Panel& Other);
+    Panel& operator=(const Panel& Other);
+    Panel(Panel&& Other) noexcept;
+    Panel& operator=(Panel&& Other) noexcept;
+    ~Panel() = default;
 
     static Panel Root();
     static Panel Create(const char* Type, const Panel& Parent, const char* Id);

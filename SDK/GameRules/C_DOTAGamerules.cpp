@@ -51,5 +51,5 @@ EGameState C_DOTAGamerules::CurrentState()
 bool C_DOTAGamerules::IsInGame()
 {
     EGameState State = CurrentState();
-    return State == EGameState::PreGame || State == EGameState::GameInProgress;
+    return State >= EGameState::HeroSelection && State <= EGameState::PostGame;
 }

@@ -1,11 +1,13 @@
 #include "GcRecvHook.h"
 
 #include "Changer/Inventory/InventorySync.h"
+#include "Changer/Ui/Watermark.h"
 #include "Misc/Patterns.h"
 #include "SDK/GC/CGCClient.h"
 #include "SDK/Logger/Logger.h"
 #include "SDK/Memory/Memory.h"
 
+#include "dota_gcmessages_common_lobby.pb.h"
 #include "gcsdk_gcmessages.pb.h"
 
 #include <MinHook.h>
@@ -45,6 +47,19 @@ namespace
                 return;
             Owner = Msg.owner_soid();
             Version = Msg.version();
+
+            for (const auto& Type : Msg.objects())
+            {
+                if (Type.type_id() == 2004)
+                {
+                    for (const auto& ObjectData : Type.object_data())
+                    {
+                        CSODOTALobby Lobby;
+                        if (Lobby.ParseFromString(ObjectData) && Lobby.has_server_region())
+                            Watermark::SetServerRegion(Lobby.server_region());
+                    }
+                }
+            }
         }
         else if (EMsg == 29)
         {

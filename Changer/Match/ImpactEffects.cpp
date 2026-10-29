@@ -96,6 +96,8 @@ void ImpactEffects::Update()
     std::deque<Pending> Ready;
     {
         std::lock_guard<std::mutex> Lock(ImpactMutex);
+        if (Queue.empty())
+            return;
         Ready.swap(Queue);
     }
     CGameEntitySystem* Entities = CGameEntitySystem::Get();

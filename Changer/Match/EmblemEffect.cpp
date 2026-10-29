@@ -7,6 +7,7 @@
 #include "Changer/Match/ParticleReplace.h"
 #include "SDK/EntitySystem/CGameEntitySystem.h"
 #include "SDK/EntitySystem/EntityUtils/C_BaseEntity.h"
+#include "SDK/GameRules/C_DOTAGamerules.h"
 #include "SDK/Logger/Logger.h"
 #include "SDK/NetDelta/ResourceId.h"
 #include "SDK/Network/CNetMessage.h"
@@ -92,6 +93,13 @@ namespace
 
 void EmblemEffect::Update()
 {
+    if (!C_DOTAGamerules::IsInGame())
+        return;
+
+    static std::uint32_t Ticks = 0;
+    if (++Ticks % 30 != 0 && !AttackPath.empty())
+        return;
+
     std::string Path = FakeLoadout::Find(FakeLoadout::EquippedModifiers(), EmblemType, EmblemAsset);
     std::lock_guard<std::mutex> Lock(PathMutex);
     if (Path != AttackPath)

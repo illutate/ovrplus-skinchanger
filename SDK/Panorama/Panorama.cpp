@@ -1,5 +1,6 @@
 #include "Panorama.h"
 
+#include "SDK/GameRules/C_DOTAGamerules.h"
 #include "SDK/Logger/Logger.h"
 #include "SDK/Panorama/UIEngine.h"
 
@@ -76,6 +77,9 @@ namespace
         V8::Local BestRoot = nullptr;
         int BestDepth = -1;
 
+        bool InGame = C_DOTAGamerules::IsInGame();
+        const char* DesiredRoot = InGame ? "DotaHud" : "DotaDashboard";
+
         std::int32_t Count = Engine->PanelContextCount();
         for (std::int32_t Index = 0; Index < Count; ++Index)
         {
@@ -94,11 +98,37 @@ namespace
             if (!ReportedRoots && Root)
                 Log("Panel context %d root %s depth %d", Index, Id.c_str(), Depth);
 
-            if (Id == RootPanelId && (BestDepth < 0 || Depth < BestDepth))
+            bool Matches = (Id == DesiredRoot) || (InGame && (Id == "Hud" || Id == "DOTAHud"));
+            if (Matches && (BestDepth < 0 || Depth < BestDepth))
             {
                 BestContext = Context;
                 BestRoot = Root;
                 BestDepth = Depth;
+            }
+        }
+
+        // Fallback to DotaDashboard if DotaHud wasn't found yet
+        if (!BestContext && InGame)
+        {
+            for (std::int32_t Index = 0; Index < Count; ++Index)
+            {
+                V8::Address* Slot = Engine->PanelContext(Index);
+                if (!Slot || !*Slot)
+                    continue;
+
+                V8::Local Context = V8::CreateHandle(Isolate, *Slot);
+                V8::ContextEnter(Context);
+                int Depth = -1;
+                V8::Local Root = FindRoot(Isolate, Context, Depth);
+                std::string Id = Root ? ReadString(Isolate, Context, Root, "id") : std::string();
+                V8::ContextExit(Context);
+
+                if (Id == "DotaDashboard" && (BestDepth < 0 || Depth < BestDepth))
+                {
+                    BestContext = Context;
+                    BestRoot = Root;
+                    BestDepth = Depth;
+                }
             }
         }
         ReportedRoots = true;
@@ -108,7 +138,7 @@ namespace
 
         RootContext = V8::Globalize(Isolate, BestContext);
         RootPanel = V8::Globalize(Isolate, BestRoot);
-        Log("Panorama root %s depth %d", RootPanelId, BestDepth);
+        Log("Panorama root %s depth %d (in_game: %d)", DesiredRoot, BestDepth, InGame);
         return RootContext && RootPanel;
     }
 }
@@ -126,6 +156,23 @@ Panorama::Scope::Scope()
     V8::IsolateEnter(Isolate);
     V8::OpenHandleScope(Handles, Isolate);
     V8::OpenTryCatch(Catch, Isolate);
+
+    static bool LastInGame = false;
+    bool InGame = C_DOTAGamerules::IsInGame();
+    if (InGame != LastInGame)
+    {
+        LastInGame = InGame;
+        if (RootContext)
+        {
+            V8::DisposeGlobal(RootContext);
+            RootContext = nullptr;
+        }
+        if (RootPanel)
+        {
+            V8::DisposeGlobal(RootPanel);
+            RootPanel = nullptr;
+        }
+    }
 
     if (!RootContext && !SelectRootContext(Isolate, Engine))
         return;

@@ -2,6 +2,7 @@
 
 #include "Changer/Gc/ItemGrant.h"
 #include "SDK/Econ/CDOTA_UI_EconItem_Animated.h"
+#include "SDK/GameRules/C_DOTAGamerules.h"
 #include "SDK/Logger/Logger.h"
 #include "SDK/Memory/Memory.h"
 #include "SDK/Panorama/Panel.h"
@@ -147,11 +148,17 @@ namespace
 
 void TreasureAddButton::Update()
 {
+    if (C_DOTAGamerules::IsInGame())
+        return;
+
     Panorama::Scope Scope;
     if (!Scope.IsValid())
         return;
 
     Panel Root = Panel::Root();
+    if (!Root.Handle())
+        return;
+
     std::vector<Panel> IconContainers = Root.FindChildrenWithClass(IconsClass);
     for (const Panel& Icons : IconContainers)
         ProcessIcons(Icons);

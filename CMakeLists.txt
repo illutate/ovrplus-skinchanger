@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ovr-skinchanger LANGUAGES C CXX)
+project(maydevilcry LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,6 +20,7 @@ file(GLOB_RECURSE SRC_MINHOOK CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Res
 set(SRC_PROTOBUF
     "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Protobufs/base_gcmessages.pb.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Protobufs/dota_commonmessages.pb.cc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Protobufs/dota_gcmessages_common_lobby.pb.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Protobufs/dota_shared_enums.pb.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Protobufs/dota_usermessages.pb.cc"
     "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Protobufs/econ_gcmessages.pb.cc"
@@ -38,7 +39,7 @@ set(SRC_PROTOBUF
     "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Protobufs/valveextensions.pb.cc"
 )
 
-add_library(ovr-skinchanger SHARED
+add_library(maydevilcry SHARED
     Main.cpp
     ${SRC_CHANGER}
     ${SRC_HOOKS}
@@ -47,21 +48,22 @@ add_library(ovr-skinchanger SHARED
     ${SRC_PROTOBUF}
 )
 
-target_link_libraries(ovr-skinchanger PRIVATE
+target_link_libraries(maydevilcry PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Resource/libprotobuf.a
     user32
     shell32
     ole32
     advapi32
+    winmm
 )
 
-target_link_options(ovr-skinchanger PRIVATE
+target_link_options(maydevilcry PRIVATE
     -static
     -static-libgcc
     -static-libstdc++
 )
 
-set_target_properties(ovr-skinchanger PROPERTIES
-    OUTPUT_NAME "ovr-skinchanger"
+set_target_properties(maydevilcry PROPERTIES
+    OUTPUT_NAME "maydevilcry"
     PREFIX ""
 )

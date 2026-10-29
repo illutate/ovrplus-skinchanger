@@ -6,10 +6,12 @@
 #include "Changer/Match/NetSkins.h"
 #include "Changer/Ui/TreasureAddButton.h"
 #include "Changer/Ui/UnusualSettings.h"
+#include "Changer/Ui/Watermark.h"
 #include "Hooks/GcRecvHook.h"
 #include "Misc/Patterns.h"
 #include "SDK/Logger/Logger.h"
 #include "SDK/Memory/Memory.h"
+#include "SDK/Optimization/ProcessOptimizer.h"
 
 #include <MinHook.h>
 
@@ -22,6 +24,7 @@ namespace
 
     void Detour(void* Engine)
     {
+        ProcessOptimizer::Update();
         InventorySync::Update();
         GcRecvHook::Update();
         Original(Engine);
@@ -29,9 +32,10 @@ namespace
         NetSkins::Update();
         EmblemEffect::Update();
         ImpactEffects::Update();
+        Watermark::Update();
 
-        // Throttle UI traversal to reduce Panorama DOM walk overhead (runs every 12 frames ~100-150ms)
-        if (++FrameCounter % 12 == 0)
+        // Throttle UI traversal to reduce Panorama DOM walk overhead (runs every 30 frames ~300-400ms)
+        if (++FrameCounter % 30 == 0)
         {
             UnusualSettings::Update();
             TreasureAddButton::Update();

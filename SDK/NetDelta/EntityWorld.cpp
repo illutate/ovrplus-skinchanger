@@ -382,37 +382,6 @@ namespace NetDelta
             return false;
         }
 
-        if (Verified < 200)
-        {
-            for (const Record& Rec : Records)
-            {
-                if (!Rec.HasData || !Rec.Decoded || !Entities[Rec.Index].Ser)
-                    continue;
-                const Serializer* Ser = Entities[Rec.Index].Ser;
-                BitWriter W;
-                if (!EncodeFieldPaths(W, Rec.Paths))
-                {
-                    ++VerifyFailures;
-                    continue;
-                }
-                for (const auto& Range : Rec.Ranges)
-                    W.CopyBits(Bytes, Range.first, Range.second - Range.first);
-                Record Back;
-                BitReader BR(W.Buffer().data(), W.Buffer().size(), 0, W.Position());
-                if (!DecodeFieldsWithRanges(BR, Ser, Back) || !(Back.Paths == Rec.Paths) || BR.Position() != W.Position())
-                {
-                    ++VerifyFailures;
-                    if (VerifyFailures < 10)
-                        LogE("NetDelta path roundtrip failed class %s fields %zu", Ser->Name.c_str(), Rec.Paths.size());
-                }
-            }
-            ++Verified;
-            if (Verified == 200)
-                Log("NetDelta roundtrip check done verify_failures %llu packets %llu mismatches %llu failures %llu",
-                    static_cast<unsigned long long>(VerifyFailures), static_cast<unsigned long long>(Packets),
-                    static_cast<unsigned long long>(Mismatches), static_cast<unsigned long long>(Failures));
-        }
-
         if (Packets % 600 == 0)
         {
             size_t Active = 0;

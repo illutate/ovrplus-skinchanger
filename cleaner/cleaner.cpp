@@ -38,7 +38,7 @@ namespace
     {
         SetConsoleColor(FOREGROUND_INTENSITY | FOREGROUND_BLUE | FOREGROUND_GREEN);
         std::cout << "=================================================================\n";
-        std::cout << "               OVR SKINS - STANDALONE CLEANER                    \n";
+        std::cout << "             MAYDEVILCRY - STANDALONE CLEANER                    \n";
         std::cout << "=================================================================\n\n";
         SetConsoleColor(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
     }
@@ -170,12 +170,37 @@ namespace
             paths.push_back(fs::current_path());
         } catch (...) {}
 
-        // 3. Common Project paths
+        // 3. User Desktop
+        char desktopPath[MAX_PATH] = {};
+        if (SUCCEEDED(SHGetFolderPathA(nullptr, CSIDL_DESKTOPDIRECTORY, nullptr, 0, desktopPath)))
+            paths.push_back(fs::path(desktopPath));
+
+        fs::path manualDesktop("C:\\Users\\project_320\\Desktop");
+        if (fs::exists(manualDesktop))
+            paths.push_back(manualDesktop);
+
+        // 4. Cheats directories
+        fs::path cheatRoot("D:\\utilities\\scripts\\cheats\\dota 2");
+        if (fs::exists(cheatRoot))
+        {
+            paths.push_back(cheatRoot);
+            paths.push_back(cheatRoot / "debug ovrplus 1.03");
+            paths.push_back(cheatRoot / "debug ovrplus 1.02");
+            paths.push_back(cheatRoot / "release ovrplus 1.0");
+        }
+
+        // 5. Workspaces
+        fs::path proj("D:\\ovr-skinchanger");
+        if (fs::exists(proj))
+        {
+            paths.push_back(proj);
+            paths.push_back(proj / "Debug-ovr-plus");
+        }
         fs::path projectPath("D:\\dota 2 volumuer");
         if (fs::exists(projectPath))
             paths.push_back(projectPath);
 
-        // 4. Steam & Dota 2 paths
+        // 6. Steam & Dota 2 paths
         std::string steamPathStr = ReadRegistryString(HKEY_CURRENT_USER, "Software\\Valve\\Steam", "SteamPath");
         if (steamPathStr.empty())
             steamPathStr = ReadRegistryString(HKEY_LOCAL_MACHINE, "SOFTWARE\\Valve\\Steam", "InstallPath");
@@ -186,13 +211,15 @@ namespace
             auto libs = GetSteamLibraryPaths(steamPath);
             for (const auto& lib : libs)
             {
-                fs::path dotaGame = lib / "steamapps" / "common" / "dota 2 beta" / "game";
+                fs::path dotaBeta = lib / "steamapps" / "common" / "dota 2 beta";
+                fs::path dotaGame = dotaBeta / "game";
                 if (fs::exists(dotaGame))
                 {
-                    paths.push_back(dotaGame / "dota" / "bin" / "win64");
                     paths.push_back(dotaGame / "bin" / "win64");
+                    paths.push_back(dotaGame / "dota" / "bin" / "win64");
                     paths.push_back(dotaGame / "dota");
                     paths.push_back(dotaGame);
+                    paths.push_back(dotaBeta);
                 }
             }
         }
@@ -232,7 +259,7 @@ int main()
         std::cout << "[+] Dota 2 is not running.\n";
     }
 
-    std::cout << "\n[*] Scanning target locations for OVR Skin configurations and cache...\n\n";
+    std::cout << "\n[*] Scanning target locations for MayDevilCry configurations and cache...\n\n";
 
     auto searchPaths = CollectSearchPaths();
     std::size_t totalDeleted = 0;
@@ -281,7 +308,7 @@ int main()
     else
     {
         SetConsoleColor(FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-        std::cout << "[CLEAN] No OVR skin files or artifacts were found.\n";
+        std::cout << "[CLEAN] No MayDevilCry skin files or artifacts were found.\n";
         SetConsoleColor(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
         std::cout << "        Your game and directory are already completely clean.\n";
     }

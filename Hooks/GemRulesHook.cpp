@@ -18,13 +18,9 @@ namespace
 
     int Detour(void* Utils, IEconItemInterface* Target, std::uint32_t SocketType, IEconItemInterface* Gem)
     {
-        int Result = Original(Utils, Target, SocketType, Gem);
-        if (Result == RuleOk || !Target || !Gem)
-            return Result;
-        std::uint64_t TargetId = Target->ItemId();
-        if (!FakeItems::IsFake(TargetId))
-            return Result;
-        return RuleOk;
+        if (Target && Gem)
+            return RuleOk;
+        return Original ? Original(Utils, Target, SocketType, Gem) : RuleOk;
     }
 }
 

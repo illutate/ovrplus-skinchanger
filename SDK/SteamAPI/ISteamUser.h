@@ -10,4 +10,5 @@ public:
 
     std::uint64_t GetSteamID();
     std::uint32_t AccountId();
+    const char* PersonaName();
 };

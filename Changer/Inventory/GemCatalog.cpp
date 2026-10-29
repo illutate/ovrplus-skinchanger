@@ -1,5 +1,6 @@
 #include "GemCatalog.h"
 
+#include "Changer/Gc/GcEmulator.h"
 #include "Changer/Inventory/FakeItems.h"
 #include "Changer/Items/ItemSockets.h"
 #include "Changer/Unusual/UnusualEffects.h"
@@ -88,7 +89,8 @@ void GemCatalog::EnsureGranted()
 
     std::vector<CSOEconItem> Missing;
     auto Want = [&](CSOEconItem Item) {
-        if (!FakeItems::Find(Item.id()))
+        auto Existing = FakeItems::Find(Item.id());
+        if (!Existing || (AccountId && Existing->account_id() != AccountId))
             Missing.push_back(std::move(Item));
     };
 
@@ -99,9 +101,16 @@ void GemCatalog::EnsureGranted()
     {
         if (Entry.Id <= 0)
             continue;
-        CSOEconItem Gem = Make(ItemSockets::EtherealGemDef, static_cast<std::uint32_t>(Entry.Id), AccountId);
-        ItemSockets::Set(Gem, ItemSockets::GemValueSocket, ItemSockets::EffectBytes(ItemSockets::EtherealGemDef, static_cast<std::uint32_t>(Entry.Id)));
-        Want(std::move(Gem));
+
+        // Ethereal Gem (Def 3000)
+        CSOEconItem Gem3000 = Make(ItemSockets::EtherealGemDef, static_cast<std::uint32_t>(Entry.Id), AccountId);
+        ItemSockets::Set(Gem3000, ItemSockets::GemValueSocket, ItemSockets::EffectBytes(ItemSockets::EtherealGemDef, static_cast<std::uint32_t>(Entry.Id)));
+        Want(std::move(Gem3000));
+
+        // Unusual Ethereal Gem (Def 3045)
+        CSOEconItem Gem3045 = Make(ItemSockets::UnusualGemDef, static_cast<std::uint32_t>(Entry.Id), AccountId);
+        ItemSockets::Set(Gem3045, ItemSockets::GemValueSocket, ItemSockets::EffectBytes(ItemSockets::UnusualGemDef, static_cast<std::uint32_t>(Entry.Id)));
+        Want(std::move(Gem3045));
     }
 
     std::uint32_t Variant = 1;
@@ -114,5 +123,7 @@ void GemCatalog::EnsureGranted()
 
     if (Missing.empty())
         return;
+
     FakeItems::Store(Missing);
+    GcEmulator::SendItems(Missing, {});
 }

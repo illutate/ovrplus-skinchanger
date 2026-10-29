@@ -95,8 +95,12 @@ namespace
     {
         GemCatalog::EnsureGranted();
         std::vector<CSOEconItem> Items = FakeItems::All();
+        ISteamUser* User = ISteamUser::Get();
+        std::uint32_t AccountId = User ? User->AccountId() : 0;
         for (CSOEconItem& Item : Items)
         {
+            if (AccountId && Item.account_id() != AccountId)
+                Item.set_account_id(AccountId);
             ItemStyles::UnlockAll(Item);
             int Effect = UnusualStore::Get(Item.id());
             if (Effect || ItemSockets::FindGem(Item, ItemSockets::UnusualGemDef))
@@ -216,7 +220,8 @@ namespace
 
 void InventorySync::Update()
 {
-    if (Started || !CGCClient::Get() || !ISteamUser::Get())
+    ISteamUser* User = ISteamUser::Get();
+    if (Started || !CGCClient::Get() || !User || !User->AccountId())
         return;
     Started = true;
     EnsureSubscribed();

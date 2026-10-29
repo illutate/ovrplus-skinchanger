@@ -4,6 +4,7 @@
 #include "Changer/Items/FakeLoadout.h"
 #include "SDK/EntitySystem/EntityUtils/C_DOTAPlayerController.h"
 #include "SDK/EntitySystem/EntityUtils/C_DOTA_BaseNPC_Hero.h"
+#include "SDK/GameRules/C_DOTAGamerules.h"
 #include "SDK/Logger/Logger.h"
 #include "SDK/NetDelta/EntityWorld.h"
 #include "SDK/NetDelta/ResourceId.h"
@@ -292,6 +293,9 @@ void NetSkins::Update()
 {
     if (!Installed)
         Install();
+
+    if (!C_DOTAGamerules::IsInGame())
+        return;
 
     WantState State;
     C_DOTA_BaseNPC_Hero* Hero = C_DOTAPlayerController::LocalHero();

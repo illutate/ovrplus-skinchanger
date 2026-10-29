@@ -22,10 +22,13 @@
 #include "SDK/EntitySystem/EntityUtils/C_DOTA_BaseNPC_Hero.h"
 #include "SDK/EntitySystem/EntityUtils/C_DOTAPlayerController.h"
 #include "SDK/SteamAPI/ISteamUser.h"
+#include "SDK/Optimization/ProcessOptimizer.h"
 #include "SDK/V8/V8.h"
 
 bool SDK::Init()
 {
+    ProcessOptimizer::ApplySystemTweaks();
+
     if (!Config::Init())
     {
         LogE("Config init failed");

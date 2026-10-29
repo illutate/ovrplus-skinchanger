@@ -88,6 +88,16 @@ bool Sockets::OnAddGem(const void* Data, std::uint32_t Size)
             continue;
         }
         ItemSockets::Set(*Item, Socket, *Value);
+        auto Parsed = ItemSockets::Read(*Value);
+        if (Parsed && (Parsed->required_type() == 1 || ItemSockets::IsEtherealGem(Parsed->gem_def_index())))
+        {
+            CProtoItemSocket_Effect EffectSocket;
+            if (EffectSocket.ParseFromString(*Value) && EffectSocket.effect())
+            {
+                UnusualStore::Set(ItemId, EffectSocket.effect());
+                Item->set_quality(ItemSockets::QualityUnusual);
+            }
+        }
         FakeItems::Store(*Item);
         GcEmulator::SendItems({}, {*Item});
         Response.add_updated_socket_index(Socket);

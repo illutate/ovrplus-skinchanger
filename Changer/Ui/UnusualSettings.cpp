@@ -3,6 +3,7 @@
 #include "Changer/Unusual/UnusualEffects.h"
 #include "Changer/Unusual/UnusualStore.h"
 #include "SDK/Dashboard/CDOTA_DB_Page_OwnedItemDetails.h"
+#include "SDK/GameRules/C_DOTAGamerules.h"
 #include "SDK/Logger/Logger.h"
 #include "SDK/Panorama/Panel.h"
 #include "SDK/Panorama/Panorama.h"
@@ -130,11 +131,23 @@ namespace
 
 void UnusualSettings::Update()
 {
+    if (C_DOTAGamerules::IsInGame())
+        return;
+
     Panorama::Scope Scope;
     if (!Scope.IsValid())
         return;
 
     Panel Root = Panel::Root();
+    Panel Popup = Root.FindChild("PopupManager");
+    if (Popup.Handle() && Popup.Children().empty())
+    {
+        Popup.Release();
+        Root.Release();
+        return;
+    }
+    Popup.Release();
+
     Panel Body = Root.FindChildTraverse("ItemEditBody");
 
     if (Body.Handle())
