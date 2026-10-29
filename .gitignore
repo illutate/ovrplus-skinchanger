@@ -1,3 +1,7 @@
+# Binaries
+*.dll
+*.exe
+
 # Build artifacts
 /build/
 *.o
